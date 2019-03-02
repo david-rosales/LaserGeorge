@@ -2,13 +2,15 @@
 
 Servo theta_servo; 
 Servo phi_servo;
+int switch_pin = 11;
+
 void setup() {
   // define attachment pin for servos 
   theta_servo.attach(9); 
   phi_servo.attach(8); 
 
   // Define serial 
-  pinMode(1, OUTPUT);
+  pinMode(switch_pin, OUTPUT);
   Serial.begin(19200); 
   Serial.println("Ready");
 }
@@ -39,6 +41,12 @@ void loop() {
        case 'p':
         phi_servo.write(v);
         v = 0;
+        break;
+       case 'y':
+        digitalWrite(switch_pin, LOW);
+        break; 
+       case 'n':
+        digitalWrite(switch_pin, HIGH);
         break;
     }
   }
