@@ -6,7 +6,7 @@ Servo Control class for Arduino interface
 
 import serial # Serial communication with Arduino 
 
-class ServoControl:
+class LaserControl:
 
 	def __init__(self, offset_theta=0, offset_phi=0, address='/dev/serial/'):
 		# Define serial 
@@ -26,18 +26,32 @@ class ServoControl:
 		self.ser.write(str(phi) + 'p')
 		return True
 
+	def turn_on(self):
+		self.ser.write('y')
+		return True 
+
+	def turn_off(self):
+		self.ser.write('n')
+		return True
+
 	def calibrate(self):
 		ok = False
 		theta = 90
 		phi = 90
 		while not ok:
-			string = raw_input('angles as "theta-phi" or enter "x" if done: ')
+			string = raw_input('angles as "theta-phi", input "on", "off", or enter "x" if done: ')
 			if string == "x":
 				ok = True
 				self.offset_theta = theta - 90
 				self.offset_phi = phi - 90
 				print("offset_theta: ", theta - 90)
 				print("offset_phi: ", phi - 90)
+
+			elif string == "on":
+				self.turn_on()
+
+			elif string == "off":
+				self.turn_off()
 
 			else:
 				values = string.split("-")
@@ -49,5 +63,5 @@ class ServoControl:
 		return True
 
 if __name__ == "__main__":
-	servo_control = ServoControl(offset_theta=6, offset_phi=5)
-	servo_control.calibrate()
+	laser_control = LaserControl(offset_theta=6, offset_phi=5)
+	laser_control.calibrate()
