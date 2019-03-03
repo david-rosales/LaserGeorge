@@ -1,0 +1,1 @@
+theta_min=60 theta_max=120 phi_min=60 phi_max=120 screen_distance=100
