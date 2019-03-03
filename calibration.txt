@@ -1,1 +1,1 @@
-theta_min=-8.5 theta_max=8.5 phi_min=97 phi_max=106 screen_distance=79.5655169611
+theta_min=-25.0 theta_max=25.0 phi_min=100 phi_max=136 screen_distance=14.9227843416
