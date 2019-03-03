@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import sys
 
 lower = np.array([0, 60, 100], dtype = "uint8")
 upper = np.array([20, 255, 255], dtype = "uint8")
@@ -71,7 +72,7 @@ def captureCamera(cam1, cam2):
     if frame1 is None or frame2 is None:
       #cv2.imshow('frame', frame)
       if last_sent != [-1, -1]:
-        print("OFF")
+        print("[-1.0, -1.0]")
       last_sent = [-1, -1]
       continue
 
@@ -88,14 +89,14 @@ def captureCamera(cam1, cam2):
     if contour1 is None or contour2 is None:
       #cv2.imshow('frame', frame)
       if last_sent != [-1, -1]:
-        print("OFF")
+        print("[-1.0, -1.0]")
       last_sent = [-1, -1]
       continue
 
     if cv2.contourArea(contour1) < 1000 or cv2.contourArea(contour2) < 1000:
       #cv2.imshow('frame', frame)
       if last_sent != [-1, -1]:
-        print("OFF")
+        print("[-1.0, -1.0]")
       last_sent = [-1, -1]
       continue
 
@@ -155,16 +156,13 @@ def captureCamera(cam1, cam2):
     #print(last_point2[0]/width, 1 - last_point1[1]/height)
     #print(1 - last_point1[1]/height)
 
-    cv2.circle(frame1, (int(last_point1[0]), int(last_point1[1])), 10, (0, 255, 255), -1)
-    cv2.circle(frame2, (int(last_point2[0]), int(last_point2[1])), 10, (0, 255, 255), -1)
-
-    cv2.drawContours(frame1, [contour1], -1, (0,255,0), 1)
-    cv2.drawContours(frame2, [contour2], -1, (0,255,0), 1)
-    
-    # skin1 = cv2.bitwise_and(frame, frame, mask = skinMask)
-
-    cv2.imshow('side', frame1)
-    cv2.imshow('top', frame2)
+    if "show" in sys.argv:
+      cv2.circle(frame1, (int(last_point1[0]), int(last_point1[1])), 10, (0, 255, 255), -1)
+      cv2.circle(frame2, (int(last_point2[0]), int(last_point2[1])), 10, (0, 255, 255), -1)
+      cv2.drawContours(frame1, [contour1], -1, (0,255,0), 1)
+      cv2.drawContours(frame2, [contour2], -1, (0,255,0), 1)
+      cv2.imshow('side', frame1)
+      cv2.imshow('top', frame2)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
       break
@@ -175,6 +173,13 @@ def captureCamera(cam1, cam2):
 
 if __name__ == "__main__":
   # DO STUFF
-  print("Starting...")
-  captureCamera(1, 2)
-  print("Ending...")
+  args = sys.argv
+  print(args)
+  if len(args) >= 3:
+    topCamera = args[1]
+    sideCamera = args[2]
+    print("Starting...")
+    captureCamera(int(topCamera), int(sideCamera))
+    print("Ending...")
+  else:
+    print("Usage: python FingerPointer.py 0 1 [show]")
