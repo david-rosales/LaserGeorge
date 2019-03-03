@@ -53,11 +53,14 @@ class LaserControl:
 		self.ser.write('n')
 		return True
 
-	# def screen2angles(self, x, y):
-	# 	# get angle from screen coordinates (range 0~1 in x y)
-	# 	x_ = x - 0.5
-	# 	y_ = y - 0.5
-	# 	thet = 
+	def move2xy(self, x, y):
+		# move to xy coord on screen
+
+	def screen2angles(self, x, y):
+		# get angle from screen coordinates (range 0~1 in x y)
+		x_ = x - 0.5
+		y_ = y - 0.5
+		thet = 
 
 
 	def three_point_calibrate(self):
@@ -130,7 +133,7 @@ class LaserControl:
 		theta_bl_raw = 90
 		phi_bl_raw = 90
 		ok = False
-		
+
 		while not ok:
 			string = raw_input('Move pointer to bottom left corner of frame: "wasd", press "x" when done: ')
 			if string == "x":
