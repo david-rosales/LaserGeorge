@@ -54,13 +54,14 @@ class LaserControl:
 		return True
 
 	def move2xy(self, x, y):
+		pass
 		# move to xy coord on screen
 
 	def screen2angles(self, x, y):
 		# get angle from screen coordinates (range 0~1 in x y)
 		x_ = x - 0.5
 		y_ = y - 0.5
-		thet = 
+		# thet = 
 
 
 	def three_point_calibrate(self):
