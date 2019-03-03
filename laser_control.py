@@ -29,6 +29,10 @@ class LaserControl:
 		self.max_phi_raw = phi_max
 		self.min_theta = theta_min # this is after accountinig for offset delta
 		self.max_theta = theta_max 
+		self.screen_min_y = np.tan(np.deg2rad(self.min_phi_raw - 90)) * self.screen_distance
+		self.screen_max_y = np.tan(np.deg2rad(self.max_phi_raw - 90)) * self.screen_distance
+		self.screen_min_x = np.tan(np.deg2rad(self.min_theta)) * self.screen_distance
+		self.screen_max_x = np.tan(np.deg2rad(self.max_theta)) * self.screen_distance
 
 	def move_theta(self, theta):
 		# direct movement to laser system 
@@ -57,14 +61,49 @@ class LaserControl:
 		pass
 		# move to xy coord on screen
 
+		theta, phi = self.screen2angles(x, y)
+		self.move_theta(theta)
+		self.move_phi(phi)
+		return True
+
 	def screen2angles(self, x, y):
 		# get angle from screen coordinates (range 0~1 in x y)
-		x_ = x - 0.5
-		y_ = y - 0.5
-		# thet = 
+		w = self.screen_max_x - self.screen_min_x
+		h = self.screen_max_y - self.screen_min_y
+		print(self.screen_max_x, self.screen_min_x)
+		x_ = -(x - 0.5)*w
+		y_ = y * h + self.screen_min_y
+		print(x_, y_)
+
+		phi_ = np.arctan2(y_, self.screen_distance)
+		theta_ = np.arctan2(x_, self.screen_distance)
+
+		phi_raw = np.rad2deg(phi_) + 90
 
 
-	def three_point_calibrate(self):
+		# adjust theta_raw from screen distance 
+		d_theta_raw = np.arctan2(-self.offset_delta, np.sqrt(np.tan(theta_)**2 + self.screen_distance**2))
+
+		theta_raw = np.rad2deg(theta_ + d_theta_raw) + 90
+
+		print(theta_, d_theta_raw, theta_raw)
+
+		return int(round(theta_raw)), int(round(phi_raw))
+
+	def test(self):
+		ok = False
+
+		while not ok:
+			string = raw_input("Enter 'x-y' between 0 and 1, or 'x' if done: ")
+			if string == 'x':
+				ok = True
+			else:
+				coords = string.split('-')
+				self.move2xy(float(coords[0]), float(coords[1]))
+		return True
+
+
+	def three_point_calibrate(self, calib_file_name="calibration.txt"):
 
 		ok = False
 
@@ -169,25 +208,41 @@ class LaserControl:
 
 		# assume pointer is centered to screen 
 		d_theta_max = (theta_bl_raw + theta_br_raw)/2.0 - 90
-		self.max_theta_raw = (theta_bl_raw - theta_br_raw)/2.0
-		self.min_theta_raw = -self.max_theta_raw
+		self.max_theta = (theta_bl_raw - theta_br_raw)/2.0
+		self.min_theta = -self.max_theta
 
 		# calculate screen distance 
 		d_theta_max = np.deg2rad(d_theta_max)
-		max_theta_raw = np.deg2rad(self.max_theta_raw)
+		max_theta_raw = np.deg2rad(self.max_theta)
 		d = np.sqrt(self.offset_delta**2/(np.tan(d_theta_max)**2) - np.tan(max_theta_raw)**2)
 
 		# project 
 		self.screen_distance = d * np.sin(np.deg2rad(phi_br_raw))
 
+		self.screen_min_y = np.tan(np.deg2rad(self.min_phi_raw - 90)) * self.screen_distance
+		self.screen_max_y = np.tan(np.deg2rad(self.max_phi_raw - 90)) * self.screen_distance
+		self.screen_min_x = np.tan(np.deg2rad(self.min_theta)) * self.screen_distance
+		self.screen_max_x = np.tan(np.deg2rad(self.max_theta)) * self.screen_distance
+
 		print("phi_min: ", self.min_phi_raw, " phi_max: ", self.max_phi_raw)
-		print("theta_min: ", self.min_theta_raw, " theta_max: ", self.max_theta_raw)
+		print("theta_min: ", self.min_theta, " theta_max: ", self.max_theta)
 		print("screen_distance: ", self.screen_distance)
+
+		file = open(calib_file_name, "w") 
+ 
+		file.write("theta_min=" + str(self.min_theta) + " ") 
+		file.write("theta_max=" + str(self.max_theta) + " ")
+		file.write("phi_min=" + str(self.min_phi_raw) + " ")
+		file.write("phi_max=" + str(self.max_phi_raw) + " ")
+		file.write("screen_distance=" + str(self.screen_distance))
+		 
+		file.close() 
 
 
 if __name__ == "__main__":
-	laser_control = LaserControl()
+	laser_control = LaserControl(phi_min=81, phi_max=106, theta_min=-11.5, theta_max=11.5, screen_distance=18.65)
 	laser_control.three_point_calibrate()
+	laser_control.test()
 
 
 
