@@ -58,31 +58,37 @@ class LaserControl:
 		return True
 
 	def move2xy(self, x, y):
+		pass
 		# move to xy coord on screen
 
 		theta, phi = self.screen2angles(x, y)
-		self.move_theta(round(theta))
-		self.move_phi(round(phi))
+		self.move_theta(theta)
+		self.move_phi(phi)
 		return True
 
 	def screen2angles(self, x, y):
 		# get angle from screen coordinates (range 0~1 in x y)
 		w = self.screen_max_x - self.screen_min_x
 		h = self.screen_max_y - self.screen_min_y
+		print(self.screen_max_x, self.screen_min_x)
 		x_ = -(x - 0.5)*w
 		y_ = y * h + self.screen_min_y
+		print(x_, y_)
 
 		phi_ = np.arctan2(y_, self.screen_distance)
 		theta_ = np.arctan2(x_, self.screen_distance)
 
 		phi_raw = np.rad2deg(phi_) + 90
 
+
 		# adjust theta_raw from screen distance 
-		d_theta_raw = np.arctan2(self.offset_delta, np.sqrt(np.tan(theta_)**2 + self.screen_distance**2))
+		d_theta_raw = np.arctan2(-self.offset_delta, np.sqrt(np.tan(theta_)**2 + self.screen_distance**2))
 
 		theta_raw = np.rad2deg(theta_ + d_theta_raw) + 90
 
-		return theta_raw, phi_raw
+		print(theta_, d_theta_raw, theta_raw)
+
+		return int(round(theta_raw)), int(round(phi_raw))
 
 	def test(self):
 		ok = False
@@ -225,7 +231,7 @@ class LaserControl:
 
 if __name__ == "__main__":
 	laser_control = LaserControl(phi_min=81, phi_max=106, theta_min=-11.5, theta_max=11.5, screen_distance=18.65)
-	# laser_control.three_point_calibrate()
+	laser_control.three_point_calibrate()
 	laser_control.test()
 
 
