@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import sys
+import socket
 
 lower = np.array([0, 60, 100], dtype = "uint8")
 upper = np.array([20, 255, 255], dtype = "uint8")
@@ -9,6 +10,7 @@ maxTime = 5
 maxDist = 300
 minDist = 0.1
 pointsWindow = 5
+DEFAULT_PORT = 65432   
 
 def createSkinMask(frame):
   frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -50,7 +52,12 @@ def averagePoint(points):
     y_tot += y
   return (int(x_tot * 1.0 / N), int(y_tot * 1.0 / N))
 
-def captureCamera(cam1, cam2):
+def connectToSocket(host, port=DEFAULT_PORT):
+  s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  s.connect((host, port))
+  return s
+
+def captureCamera(cam1, cam2, s):
   cap1 = cv2.VideoCapture(cam1)
   cap2 = cv2.VideoCapture(cam2)
   width = cap2.get(cv2.CAP_PROP_FRAME_WIDTH)/4
@@ -72,7 +79,9 @@ def captureCamera(cam1, cam2):
     if frame1 is None or frame2 is None:
       #cv2.imshow('frame', frame)
       if last_sent != [-1, -1]:
-        print("[-1.0, -1.0]")
+        coord = "-1.0, -1.0"
+        s.sendall(coord.encode())
+        print(coord)
       last_sent = [-1, -1]
       continue
 
@@ -89,14 +98,18 @@ def captureCamera(cam1, cam2):
     if contour1 is None or contour2 is None:
       #cv2.imshow('frame', frame)
       if last_sent != [-1, -1]:
-        print("[-1.0, -1.0]")
+        coord = "-1.0, -1.0"
+        s.sendall(coord.encode())
+        print(coord)
       last_sent = [-1, -1]
       continue
 
     if cv2.contourArea(contour1) < 1000 or cv2.contourArea(contour2) < 1000:
       #cv2.imshow('frame', frame)
       if last_sent != [-1, -1]:
-        print("[-1.0, -1.0]")
+        coord = "-1.0, -1.0"
+        s.sendall(coord.encode())
+        print(coord)
       last_sent = [-1, -1]
       continue
 
@@ -151,7 +164,9 @@ def captureCamera(cam1, cam2):
 
     if distanceBetween(last_sent, new_point) > minDist:
       last_sent = new_point
-      print(last_sent)
+      coord = str(last_sent[0]) + "," + str(last_sent[1])
+      s.sendall(coord.encode())
+      print(coord)
 
     #print(last_point2[0]/width, 1 - last_point1[1]/height)
     #print(1 - last_point1[1]/height)
@@ -175,11 +190,13 @@ if __name__ == "__main__":
   # DO STUFF
   args = sys.argv
   print(args)
-  if len(args) >= 3:
+  if len(args) >= 4:
     topCamera = args[1]
     sideCamera = args[2]
+    serverIP = args[3]
     print("Starting...")
-    captureCamera(int(topCamera), int(sideCamera))
+    s = connectToSocket(serverIP)
+    captureCamera(int(topCamera), int(sideCamera), s)
     print("Ending...")
   else:
     print("Usage: python FingerPointer.py 0 1 [show]")
