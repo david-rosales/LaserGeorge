@@ -8,9 +8,11 @@ upper = np.array([20, 255, 255], dtype = "uint8")
 
 maxTime = 5
 maxDist = 300
-minDist = 0.1
-pointsWindow = 5
-DEFAULT_PORT = 65432   
+minDist = 0.005
+pointsWindow = 7
+DEFAULT_PORT = 65432
+
+pointsBLAH = []
 
 def createSkinMask(frame):
   frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -72,6 +74,7 @@ def captureCamera(cam1, cam2, s):
   last_sent = [-1, -1]
 
   while(True):
+    blank_image = np.zeros((int(height*3),int(width*3),3), np.uint8)
     last_no_change_counter1 += 1
     last_no_change_counter2 += 1
     _, frame1 = cap1.read()
@@ -82,6 +85,7 @@ def captureCamera(cam1, cam2, s):
         coord = "-1.0, -1.0"
         s.sendall(coord.encode())
         print(coord)
+      cv2.imshow('feedback', blank_image)
       last_sent = [-1, -1]
       continue
 
@@ -179,6 +183,14 @@ def captureCamera(cam1, cam2, s):
       cv2.imshow('side', frame1)
       cv2.imshow('top', frame2)
 
+    if "feedback" in sys.argv:
+      pointsBLAH.append(new_point)
+      if len(pointsBLAH) > 20:
+        pointsBLAH.pop(0)
+      for pointB in pointsBLAH:
+        cv2.circle(blank_image, (int(pointB[0]*width*3), int((1-pointB[1])*height*3)), 5, (0, 255, 0), -1)
+      cv2.imshow('feedback', blank_image)
+
     if cv2.waitKey(1) & 0xFF == ord('q'):
       break
 
@@ -199,4 +211,4 @@ if __name__ == "__main__":
     captureCamera(int(topCamera), int(sideCamera), s)
     print("Ending...")
   else:
-    print("Usage: python FingerPointer.py 0 1 [show]")
+    print("Usage: python FingerPointer.py 0 1 127.0.0.1 [show] [feedback]")
