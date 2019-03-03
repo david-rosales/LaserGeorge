@@ -13,7 +13,7 @@ print(paraDict)
 
 myControl = LaserControl(theta_min = paraDict['theta_min'], theta_max = paraDict['theta_max'],
 						 phi_min = paraDict['phi_min'], phi_max = paraDict['phi_max'],screen_distance = paraDict['screen_distance'])
-laserState = "ON"
+laserState = "OFF"
 
 HOST = '0.0.0.0'  # Standard loopback interface address (localhost)
 PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
@@ -32,7 +32,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     continue
                 conn.sendall(data)
                 print(data)
-                (x,y) = data.split(",")
+                (x,y) = data.decode().split(",")
                 x = float(x)
                 y = float(y)
                 if x == -1 and y == -1:
