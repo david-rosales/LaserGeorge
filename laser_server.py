@@ -36,7 +36,11 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 x = float(x)
                 y = float(y)
                 if x == -1 and y == -1:
-                	if(laserState == "OFF"):
+                	if(laserState == "ON"):
+                		laserState = "OFF"
                 		myControl.turn_off()
                 else:
+                	if(laserState == "OFF"):
+                		laserState = "ON"
+                		myControl.turn_on()	
                 	myControl.move2xy(x,y)
